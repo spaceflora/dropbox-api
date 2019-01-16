@@ -1,0 +1,21 @@
+{
+    "name": "spaceflora/dropbox-api",
+    "type": "library",
+    "description": "",
+    "keywords": ["api", "dropbox"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Evan de Graaff"
+        }
+    ],
+    "autoload":{
+        "psr-4":{
+            "Spaceflora\\DropboxApi\\": ""
+        }
+    },
+    "require": {
+        "guzzlehttp/guzzle": "~6.0",
+        "jms/serializer-bundle": "^2.4"
+    }
+}
