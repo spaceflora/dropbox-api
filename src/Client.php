@@ -2,25 +2,17 @@
 
 namespace Spaceflora\DropboxApi;
 
+use Psr\Http\Message\ResponseInterface;
+
 /**
  * Class Client
  */
 class Client
 {
     /**
-     * @var string
+     * @var Request
      */
-    private $accessToken;
-
-    /**
-     * @var string
-     */
-    private $apiHost;
-
-    /**
-     * @var null|\GuzzleHttp\Client
-     */
-    private $client;
+    private $request;
 
     /**
      * Client constructor.
@@ -29,36 +21,49 @@ class Client
      */
     public function __construct(string $accessToken)
     {
-        $this->accessToken = $accessToken;
-        $this->apiHost = 'https://api.dropboxapi.com';
-    }
-
-    public function listFolder(string $path = '')
-    {
-        /** @var REsponse $response */
-        $response = $this->getClient()->post($this->apiHost.'/2/files/list_folder', [
-            \GuzzleHttp\RequestOptions::JSON => [
-                'path' => $path,
-            ],
-        ]);
-
-        return $response;
+        $this->request = new Request($accessToken);
     }
 
     /**
-     * @return \GuzzleHttp\Client|null
+     * @param string $path
+     *
+     * @return array
      */
-    private function getClient(): \GuzzleHttp\Client
+    public function download(string $path): array
     {
-        if (null === $this->client) {
-            $this->client = new \GuzzleHttp\Client([
-                'headers' => [
-                    'Authorization' => 'Bearer '.$this->accessToken,
-                    'Content-Type' => 'application/json',
-                ],
-            ]);
+        return $this->request->post('/2/files/download', [
+            'path' => $path,
+        ]);
+    }
+
+    /**
+     * @param string $path
+     *
+     * @return array
+     */
+    public function downloadZip(string $path): array
+    {
+        return $this->request->post('/2/files/download_zip', [
+            'path' => $path,
+        ]);
+    }
+
+    /**
+     * @param string   $path
+     * @param int|null $limit
+     *
+     * @return array
+     */
+    public function listFolder(string $path = '', int $limit = null): array
+    {
+        $parameters = [
+            'path' => $path,
+        ];
+
+        if (null !== $limit) {
+            $parameters['limit'] = $limit;
         }
 
-        return $this->client;
+        return $this->request->post('/2/files/list_folder', $parameters);
     }
 }
