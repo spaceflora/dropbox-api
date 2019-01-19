@@ -9,6 +9,9 @@ use Psr\Http\Message\ResponseInterface;
  */
 class Client
 {
+    const CONTENT_TYPE = 'Content-Type';
+    const DROPBOX_API_ARG = 'Dropbox-API-Arg';
+
     /**
      * @var Request
      */
@@ -29,23 +32,39 @@ class Client
      *
      * @return array
      */
-    public function download(string $path): array
+    public function delete(string $path): array
     {
-        return $this->request->post('/2/files/download', [
+        return $this->request->request('https://api.dropboxapi.com/2/files/delete_v2', [
             'path' => $path,
         ]);
     }
 
     /**
      * @param string $path
+     * @param string $localPath
      *
-     * @return array
+     * @return string
      */
-    public function downloadZip(string $path): array
+    public function download(string $path): string
     {
-        return $this->request->post('/2/files/download_zip', [
-            'path' => $path,
-        ]);
+        return $this->request->request('https://content.dropboxapi.com/2/files/download', null, [
+            self::DROPBOX_API_ARG => sprintf('{"path":"%s"}', $path),
+            self::CONTENT_TYPE => 'application/octet-stream',
+        ], false);
+    }
+
+    /**
+     * @param string $path
+     * @param string $localPath
+     *
+     * @return string
+     */
+    public function downloadZip(string $path): string
+    {
+        return $this->request->request('https://content.dropboxapi.com/2/files/download_zip', null, [
+            self::DROPBOX_API_ARG => sprintf('{"path":"%s"}', $path),
+            self::CONTENT_TYPE => 'application/octet-stream',
+        ], false);
     }
 
     /**
@@ -64,6 +83,6 @@ class Client
             $parameters['limit'] = $limit;
         }
 
-        return $this->request->post('/2/files/list_folder', $parameters);
+        return $this->request->request('https://api.dropboxapi.com/2/files/list_folder', $parameters);
     }
 }

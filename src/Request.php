@@ -2,9 +2,6 @@
 
 namespace Spaceflora\DropboxApi;
 
-use GuzzleHttp\Client;
-use Psr\Http\Message\ResponseInterface;
-
 /**
  * Class Request
  */
@@ -14,11 +11,6 @@ class Request
      * @var string
      */
     private $accessToken;
-
-    /**
-     * @var string
-     */
-    private $apiHost;
 
     /**
      * @var null|Client
@@ -33,49 +25,68 @@ class Request
     public function __construct(string $accessToken)
     {
         $this->accessToken = $accessToken;
-        $this->apiHost = 'https://api.dropboxapi.com';
     }
 
     /**
      * @param string $endpoint
-     * @param array  $parameters
      *
-     * @return array
+     * @return array|string
      */
-    public function post(string $endpoint, array $parameters = [])
+    public function request(string $endpoint, array $parameters = null, array $headers = [], $isJson = true)
     {
-        /** @var ResponseInterface $response */
-        $response = $this->getClient()->post($this->apiHost.$endpoint, [
-            \GuzzleHttp\RequestOptions::JSON => $parameters,
-        ]);
+        $headers['Authorization'] = 'Bearer '.$this->accessToken;
 
-        return $this->parseResponse($response);
-    }
-
-    /**
-     * @return \GuzzleHttp\Client|null
-     */
-    private function getClient(): \GuzzleHttp\Client
-    {
-        if (null === $this->client) {
-            $this->client = new \GuzzleHttp\Client([
-                'headers' => [
-                    'Authorization' => 'Bearer '.$this->accessToken,
-                    'Content-Type' => 'application/json',
-                ],
-            ]);
+        if (true === $isJson) {
+            $headers['Content-Type'] = 'application/json';
         }
 
-        return $this->client;
+        $output = $this->execute($endpoint, $parameters, $this->parseHeaders($headers));
+
+        if (true === $isJson) {
+            $output = json_decode($output, true);
+        }
+
+        return $output;
     }
 
     /**
-     * @param ResponseInterface $response
+     * @param string     $endpoint
+     * @param array|null $parameters
+     * @param array      $headers
+     *
+     * @return string
+     */
+    private function execute(string $endpoint, array $parameters = null, array $headers = []): string
+    {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_URL, $endpoint);
+
+        if (null !== $parameters) {
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($parameters));
+        }
+
+        $output = curl_exec($ch);
+        curl_close($ch);
+
+        return $output;
+    }
+
+    /**
+     * @param array $headers
      *
      * @return array
      */
-    private function parseResponse(ResponseInterface $response): array
+    private function parseHeaders(array $headers): array
     {
-        return json_decode($response->getBody()->getContents(), true);
+        $parsedHeaders = [];
+
+        foreach ($headers as $headerKey => $headerValue) {
+            $parsedHeaders[] = $headerKey.': '.$headerValue;
+        }
+
+        return $parsedHeaders;
     }
 }
