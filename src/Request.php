@@ -28,7 +28,7 @@ class Request
      * @param array      $headers
      * @param bool       $isJson
      *
-     * @return mixed|string
+     * @return array|string
      */
     public function request(string $endpoint, array $parameters = null, array $headers = [], $isJson = true)
     {

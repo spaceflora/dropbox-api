@@ -34,10 +34,11 @@ class Service
         $path = $entry['path_lower'];
 
         if ('folder' === $entry['.tag']) {
-            return $this->client->downloadZip($path);
+            $contents = $this->client->downloadZip($path);
+        } else {
+            $contents = $this->client->download($path);
         }
 
-        $contents = $this->client->download($path);
         $status = false;
 
         if (null !== $contents) {
