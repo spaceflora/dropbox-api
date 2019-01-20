@@ -13,9 +13,9 @@ class Service
     private $client;
 
     /**
-     * Client constructor.
+     * Service constructor.
      *
-     * @param string $accessToken
+     * @param Client $client
      */
     public function __construct(Client $client)
     {
@@ -27,17 +27,39 @@ class Service
      * @param string      $localPath
      * @param string|null $filename
      *
-     * @return string
+     * @return bool
      */
-    public function download(array $entry, string $localPath, string $filename = null): string
+    public function download(array $entry, string $localPath, string $filename = null): bool
     {
         $path = $entry['path_lower'];
 
         if ('folder' === $entry['.tag']) {
-            return $this->client->downloadZip(rtrim($path, '/').'/*');
+            return $this->client->downloadZip($path);
         }
 
-        return $this->client->download($path);
+        $contents = $this->client->download($path);
+        $status = false;
+
+        if (null !== $contents) {
+            if (null === $filename) {
+                $filename = $entry['name'];
+            } else {
+                $filename .= strstr($entry['name'], '.');
+            }
+
+            if ('folder' === $entry['.tag']) {
+                $filename .= '.zip';
+            }
+
+            $path = rtrim($localPath, '/').'/'.$filename;
+            $status = file_put_contents($path, $contents);
+
+            if (false !== $status) {
+                $status = true;
+            }
+        }
+
+        return $status;
     }
 
     /**
@@ -47,21 +69,10 @@ class Service
      */
     public function export(array $entry, string $localPath, string $filename = null): void
     {
-        $contents = $this->download($entry, $localPath, $filename);
+        $status = $this->download($entry, $localPath, $filename);
 
-        if (null !== $contents) {
-            if (null === $filename) {
-                $filename = $entry['name'];
-            } else {
-                $filename .= strstr($entry['name'], '.');
-            }
-
-            $path = rtrim($localPath, '/').'/'.$filename;
-            $status = file_put_contents($path, $contents);
-
-            if (false !== $status) {
-                $this->client->delete($entry['path_lower']);
-            }
+        if (true === $status) {
+            $this->client->delete($entry['path_lower']);
         }
     }
 }

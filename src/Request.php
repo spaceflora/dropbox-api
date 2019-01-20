@@ -13,11 +13,6 @@ class Request
     private $accessToken;
 
     /**
-     * @var null|Client
-     */
-    private $client;
-
-    /**
      * Request constructor.
      *
      * @param string $accessToken
@@ -28,9 +23,12 @@ class Request
     }
 
     /**
-     * @param string $endpoint
+     * @param string     $endpoint
+     * @param array|null $parameters
+     * @param array      $headers
+     * @param bool       $isJson
      *
-     * @return array|string
+     * @return mixed|string
      */
     public function request(string $endpoint, array $parameters = null, array $headers = [], $isJson = true)
     {

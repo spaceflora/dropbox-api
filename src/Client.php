@@ -2,8 +2,6 @@
 
 namespace Spaceflora\DropboxApi;
 
-use Psr\Http\Message\ResponseInterface;
-
 /**
  * Class Client
  */
@@ -41,7 +39,6 @@ class Client
 
     /**
      * @param string $path
-     * @param string $localPath
      *
      * @return string
      */
@@ -55,7 +52,6 @@ class Client
 
     /**
      * @param string $path
-     * @param string $localPath
      *
      * @return string
      */
