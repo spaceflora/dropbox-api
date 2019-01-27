@@ -67,13 +67,19 @@ class Service
      * @param array       $entry
      * @param string      $localPath
      * @param string|null $filename
+     *
+     * @return bool
      */
-    public function export(array $entry, string $localPath, string $filename = null): void
+    public function export(array $entry, string $localPath, string $filename = null): bool
     {
         $status = $this->download($entry, $localPath, $filename);
 
         if (true === $status) {
             $this->client->delete($entry['path_lower']);
+
+            return true;
         }
+
+        return false;
     }
 }
